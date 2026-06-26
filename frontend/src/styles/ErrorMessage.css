@@ -1,0 +1,25 @@
+.error-container {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+
+  text-align: center;
+  padding: 24px;
+}
+
+.error-icon {
+  font-size: 48px;
+}
+
+.error-container h2 {
+  color: #dc2626;
+  margin: 0;
+}
+
+.error-container p {
+  color: #6b7280;
+  max-width: 500px;
+}
