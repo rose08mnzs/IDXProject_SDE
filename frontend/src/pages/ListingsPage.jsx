@@ -6,6 +6,7 @@ import LoadingSpinner from "../components/Loading";
 import ErrorMessage from "../components/ErrorMessage";
 import PropertyFilters from "../components/PropertyFilters";
 import NoResultsMessage from "../components/NoResultsMessage";
+import Pagination from "../components/Pagination";
 
 const initialFilters = {
   city: "",
@@ -26,9 +27,11 @@ export default function ListingsPage() {
     beds: [],
     baths: [],
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const requestIdRef = useRef(0);
 
-  const loadProperties = async (activeFilters = filters) => {
+  const loadProperties = async (activeFilters = filters, page = currentPage) => {
     const requestId = ++requestIdRef.current;
     try {
       setLoading(true);
@@ -39,7 +42,8 @@ export default function ListingsPage() {
           ([, value]) => value !== "" && value !== null && value !== undefined
         )
       );
-      const data = await fetchProperties({ limit: 20, offset: 0, ...cleanedFilters });
+      const offset = (page - 1) * itemsPerPage;
+      const data = await fetchProperties({ limit: itemsPerPage, offset, ...cleanedFilters });
       if (requestId !== requestIdRef.current) return;
 
       const results = data.results || [];
@@ -54,6 +58,7 @@ export default function ListingsPage() {
       }
     }
   };
+
   const loadDropdowns = async () => {
     try {
       setLoading(true);
@@ -83,13 +88,23 @@ export default function ListingsPage() {
     return <ErrorMessage message={error} />;
   }
   const handleSearch = () => {
-    loadProperties(filters);
+    setCurrentPage(1);
+    loadProperties(filters, 1);
   };
-
   const handleClear = () => {
     setFilters(initialFilters);
-    loadProperties(initialFilters);
+    setCurrentPage(1);
+    loadProperties(initialFilters,1);
   };
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+    loadProperties(filters, page);
+  };
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const startItem = total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, total);
 
   return (
     <>
@@ -98,7 +113,7 @@ export default function ListingsPage() {
           <div className="hero-overlay">
             <h1>Property Listings</h1>
             <p className="hero-count">
-              Showing {properties.length} of {total.toLocaleString()} properties
+              Showing {startItem}-{endItem} of {total.toLocaleString()} properties
             </p>
           </div>
         </header>
@@ -126,6 +141,14 @@ export default function ListingsPage() {
             ))}
           </div>
         )}
+         {properties.length > 0 && totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalItems={total}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+              />
+            )}
       </div>
     </>
   );
