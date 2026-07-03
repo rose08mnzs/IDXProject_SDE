@@ -25,7 +25,7 @@ The project emphasizes building RESTful APIs, integrating a React frontend with 
 
 
 ## Current status
-- Week 1-6 completed
+- Week 1-7 completed
 - MySQL database setup using Docker
 - Backend API implemented
     - Health check endpoint
@@ -40,18 +40,21 @@ The project emphasizes building RESTful APIs, integrating a React frontend with 
     - Property detail page
     - Image fallback handling
     - Property filters
+    - Pagination
     - Reusable components such as loading and error.
 - Testing
     - openhouses API tests
     - properties API tests
     - API client unit tests
     - PropertyFilters component unit tests
+    - Pagination component unit tests
 - Debugging
     - Fixed parameterized query bug in property filtering
     - Added error handling for endpoints
     - Investigated listing ID data inconsistencies
     - Implemented defensive image handling
     - Fixed asynchronous search state update issue
+    - Fixed duplicate page number generation in the pagination component
 
 
 
