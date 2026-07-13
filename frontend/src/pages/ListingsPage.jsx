@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { fetchProperties, fetchFilterOptions } from "../api/client";
 import "../styles/ListingsPage.css";
 import PropertyCard from "../components/PropertyCard";
@@ -17,17 +18,32 @@ const initialFilters = {
   baths: "",
 };
 
+function getFiltersFromParams(searchParams) {
+  return {
+    city: searchParams.get("city") || "",
+    zipcode: searchParams.get("zipcode") || "",
+    minPrice: searchParams.get("minPrice") || "",
+    maxPrice: searchParams.get("maxPrice") || "",
+    beds: searchParams.get("beds") || "",
+    baths: searchParams.get("baths") || "",
+  };
+}
+
 export default function ListingsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [properties, setProperties] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState(initialFilters);
+  const [filters, setFilters] = useState(() => getFiltersFromParams(searchParams));
   const [filterOptions, setFilterOptions] = useState({
     beds: [],
     baths: [],
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(
+    () => Number(searchParams.get("page") || 1)
+  );
   const [itemsPerPage] = useState(20);
   const requestIdRef = useRef(0);
 
@@ -42,8 +58,10 @@ export default function ListingsPage() {
           ([, value]) => value !== "" && value !== null && value !== undefined
         )
       );
+
       const offset = (page - 1) * itemsPerPage;
       const data = await fetchProperties({ limit: itemsPerPage, offset, ...cleanedFilters });
+
       if (requestId !== requestIdRef.current) return;
 
       const results = data.results || [];
@@ -59,49 +77,63 @@ export default function ListingsPage() {
     }
   };
 
+  useEffect(() => {
+    loadDropdowns();
+  }, []);
+
+  useEffect(() => {
+    const nextFilters = getFiltersFromParams(searchParams);
+    const nextPage = Number(searchParams.get("page") || 1);
+
+    setFilters(nextFilters);
+    setCurrentPage(nextPage);
+    loadProperties(nextFilters, nextPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const loadDropdowns = async () => {
     try {
-      setLoading(true);
-      setError("");
       const initialDropDownData = await fetchFilterOptions();
-      console.log("Initial Drop Down Data:", initialDropDownData);
       setFilterOptions({
         beds: initialDropDownData.beds || [],
         baths: initialDropDownData.baths || [],
       });
     } catch (err) {
       setError(err.message || "Failed to load dropdown options.");
-    } finally {
-      setLoading(false);
     }
   };
-  useEffect(() => {
-    loadDropdowns();
-    loadProperties(initialFilters);
-  }, []);
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  const buildParams = (nextFilters, page = 1) => {
+    const params = new URLSearchParams();
 
-  if (error) {
-    return <ErrorMessage message={error} />;
-  }
-  const handleSearch = () => {
-    setCurrentPage(1);
-    loadProperties(filters, 1);
+    Object.entries(nextFilters).forEach(([key, value]) => {
+      if (value !== "" && value !== null && value !== undefined) {
+        params.set(key, value);
+      }
+    });
+
+    params.set("page", String(page));
+    return params;
   };
+
+  const handleSearch = () => {
+    setSearchParams(buildParams(filters, 1));
+  };
+
   const handleClear = () => {
     setFilters(initialFilters);
-    setCurrentPage(1);
-    loadProperties(initialFilters,1);
+    setSearchParams({ page: "1" });
   };
-  
+
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    const params = buildParams(filters, page);
+    setSearchParams(params);
     window.scrollTo(0, 0);
-    loadProperties(filters, page);
   };
+
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage message={error} />;
+
   const totalPages = Math.ceil(total / itemsPerPage);
   const startItem = total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, total);
@@ -117,20 +149,21 @@ export default function ListingsPage() {
             </p>
           </div>
         </header>
+
         <PropertyFilters
           filters={filters}
           setFilters={setFilters}
           onSearch={handleSearch}
           onClear={handleClear}
-          filterOptions={filterOptions} />
+          filterOptions={filterOptions}
+        />
       </div>
+
       <div className="listings-subpage">
         {properties.length === 0 && (
-          <NoResultsMessage
-            title="No Properties Found"
-            message="Try different filters."
-          />
+          <NoResultsMessage title="No Properties Found" message="Try different filters." />
         )}
+
         {properties.length > 0 && (
           <div className="property-grid">
             {properties.map((property) => (
@@ -141,14 +174,15 @@ export default function ListingsPage() {
             ))}
           </div>
         )}
-         {properties.length > 0 && totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalItems={total}
-                itemsPerPage={itemsPerPage}
-                onPageChange={handlePageChange}
-              />
-            )}
+
+        {properties.length > 0 && totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalItems={total}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
     </>
   );

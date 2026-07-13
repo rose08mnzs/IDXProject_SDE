@@ -1,0 +1,41 @@
+.openhouse-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.openhouse-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    background: #fafafa;
+}
+
+.openhouse-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.openhouse-row .icon {
+    width: 24px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.remarks {
+    margin-top: 14px;
+    padding: 14px;
+    background: white;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.openhouse-empty {
+    color: #64748b;
+    font-style: italic;
+}

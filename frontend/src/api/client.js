@@ -44,3 +44,6 @@ export async function fetchPropertyDetail(id) {
 export async function fetchFilterOptions() {
   return request("/properties/filter-options");
 }
+export async function fetchPropertyOpenHouses(id) {
+  return request(`/properties/${id}/openhouses`);
+}

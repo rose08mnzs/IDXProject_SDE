@@ -1,11 +1,11 @@
 import React from "react";
-import { getFirstPhotoUrl } from "../utility/photos";
+import { useNavigate } from "react-router-dom";
+import PropertyImageCarousel from "./PropertyImageCarousel";
 import "../styles/PropertyCard.css";
+
 export default function PropertyCard({ property }) {
-  const photoUrl = getFirstPhotoUrl(property.L_Photos);
-console.log("Listing:", property.L_ListingID);
-console.log("Raw L_Photos:", property.L_Photos);
-console.log("First photo url:", photoUrl);
+  const navigate = useNavigate();
+
   const price =
     property.L_SystemPrice !== null && property.L_SystemPrice !== undefined
       ? `$${Number(property.L_SystemPrice).toLocaleString()}`
@@ -15,50 +15,57 @@ console.log("First photo url:", photoUrl);
   const baths = property.LM_Dec_3 ?? "—";
   const sqft = property.LM_Int2_3 ?? "—";
 
+  const handleClick = () => {
+    navigate(`/property/${property.L_ListingID}`);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      navigate(`/property/${property.L_ListingID}`);
+    }
+  };
+
   return (
-    <div className="property-card">
+    <div
+      className="property-card"
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+    >
       <div className="property-image-wrap">
-        {photoUrl ? (
-          <img
-            src={photoUrl}
-            alt={property.L_Address || "Property"}
-            className="property-image"
-          />
-        ) : (
-          <div className="property-image placeholder">No photo available</div>
-        )}
+        <PropertyImageCarousel
+          photosRaw={property.L_Photos}
+          altText={property.L_Address || "Property"}
+        />
       </div>
 
-
       <div className="property-content">
-
         <div className="address">{property.L_Address || "Address unavailable"}</div>
 
         <div className="location">
           <span className="icon">📍</span>
           <span className="text">
-            {[property.L_City, property.L_State]
-              .filter(Boolean)
-              .join(", ")}
+            {[property.L_City, property.L_State].filter(Boolean).join(", ")}
           </span>
         </div>
 
         <div className="details">
           <div className="detail-item">
-            <span className="icon">🛏 </span>
+            <span className="icon">🛏</span>
             <span>{beds} beds</span>
           </div>
-
           <div className="detail-item">
-            <span className="icon">🛁 </span>
+            <span className="icon">🛁</span>
             <span>{baths} baths</span>
           </div>
-
           <div className="detail-item">
-            <span className="icon">📐 </span>
+            <span className="icon">📐</span>
             <span>{sqft} sqft</span>
           </div>
         </div>
+
         <div className="price">{price}</div>
       </div>
     </div>
