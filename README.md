@@ -25,23 +25,40 @@ The project emphasizes building RESTful APIs, integrating a React frontend with 
 
 
 ## Current status
-- Week 1-7 completed
+- Week 1-9 completed
 - MySQL database setup using Docker
 - Backend API implemented
     - Health check endpoint
     - Property listings endpoint
     - Property details endpoint
     - Property search with filters endpoint
+    - Property sorting endpoint support
     - Open houses endpoint
     - Error handling and validation
 - Frontend implemented
     - Listings page
     - Property cards
     - Property detail page
-    - Image fallback handling
+    - Favorites page
+    - Property image carousel
+    - Property image gallery with lightbox
+    - Google Maps integration
+    - Open house display
+    - Property details component
+    - Description card with Read More / Show Less
+    - Property sorting controls
+    - Favorites using a custom React hook
+    - Property image fallback handling
     - Property filters
     - Pagination
-    - Reusable components such as loading and error.
+    - React Error Boundary
+    - Reusable components such as loading and error
+- Performance Optimization
+    - Request logging middleware with response time
+    - EXPLAIN query analysis
+    - Composite database indexes
+    - Query performance improvement using indexes
+    - React console warning review
 - Testing
     - openhouses API tests
     - properties API tests
@@ -55,6 +72,11 @@ The project emphasizes building RESTful APIs, integrating a React frontend with 
     - Implemented defensive image handling
     - Fixed asynchronous search state update issue
     - Fixed duplicate page number generation in the pagination component
+    - Parsed `OpenHouseRemarks` from the `all_data` JSON field on the frontend
+    - Implemented keyboard navigation and Escape key support for the image lightbox
+    - Improved handling of expired and broken MLS image URLs in the carousel and gallery
+    - Added handling for missing property map coordinates
+    - Added backend validation for sorting parameters using a whitelist of SQL column names
 
 
 

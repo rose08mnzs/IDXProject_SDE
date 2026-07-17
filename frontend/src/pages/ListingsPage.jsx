@@ -8,6 +8,7 @@ import ErrorMessage from "../components/ErrorMessage";
 import PropertyFilters from "../components/PropertyFilters";
 import NoResultsMessage from "../components/NoResultsMessage";
 import Pagination from "../components/Pagination";
+import { useFavorites } from "../hooks/useFavorites";
 
 const initialFilters = {
   city: "",
@@ -16,6 +17,11 @@ const initialFilters = {
   maxPrice: "",
   beds: "",
   baths: "",
+};
+
+const initialSort = {
+  sortBy: "",
+  sortOrder: "asc",
 };
 
 function getFiltersFromParams(searchParams) {
@@ -28,9 +34,17 @@ function getFiltersFromParams(searchParams) {
     baths: searchParams.get("baths") || "",
   };
 }
+function getSortFromParams(searchParams) {
+  return {
+    sortBy: searchParams.get("sortBy") || "",
+    sortOrder: searchParams.get("sortOrder") || "asc",
+  };
+}
+
 
 export default function ListingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { favoritesCount } = useFavorites();
 
   const [properties, setProperties] = useState([]);
   const [total, setTotal] = useState(0);
@@ -47,7 +61,13 @@ export default function ListingsPage() {
   const [itemsPerPage] = useState(20);
   const requestIdRef = useRef(0);
 
-  const loadProperties = async (activeFilters = filters, page = currentPage) => {
+  const [sortBy, setSortBy] = useState(() => getSortFromParams(searchParams).sortBy);
+  const [sortOrder, setSortOrder] = useState(() => getSortFromParams(searchParams).sortOrder);
+
+  const loadProperties = async (activeFilters = filters, page = currentPage,
+    activeSortBy = sortBy,
+    activeSortOrder = sortOrder
+  ) => {
     const requestId = ++requestIdRef.current;
     try {
       setLoading(true);
@@ -60,7 +80,17 @@ export default function ListingsPage() {
       );
 
       const offset = (page - 1) * itemsPerPage;
-      const data = await fetchProperties({ limit: itemsPerPage, offset, ...cleanedFilters });
+      const queryParams = {
+        limit: itemsPerPage,
+        offset,
+        ...cleanedFilters,
+      };
+
+      if (activeSortBy) {
+        queryParams.sortBy = activeSortBy;
+        queryParams.sortOrder = activeSortOrder || "asc";
+      }
+      const data = await fetchProperties(queryParams);
 
       if (requestId !== requestIdRef.current) return;
 
@@ -83,12 +113,15 @@ export default function ListingsPage() {
 
   useEffect(() => {
     const nextFilters = getFiltersFromParams(searchParams);
+    const nextSort = getSortFromParams(searchParams);
     const nextPage = Number(searchParams.get("page") || 1);
 
     setFilters(nextFilters);
+    setSortBy(nextSort.sortBy);
+    setSortOrder(nextSort.sortOrder);
     setCurrentPage(nextPage);
-    loadProperties(nextFilters, nextPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadProperties(nextFilters, nextPage, nextSort.sortBy, nextSort.sortOrder);
+  
   }, [searchParams]);
 
   const loadDropdowns = async () => {
@@ -103,7 +136,7 @@ export default function ListingsPage() {
     }
   };
 
-  const buildParams = (nextFilters, page = 1) => {
+  function buildParams(nextFilters, page = 1, nextSort = initialSort) {
     const params = new URLSearchParams();
 
     Object.entries(nextFilters).forEach(([key, value]) => {
@@ -112,25 +145,41 @@ export default function ListingsPage() {
       }
     });
 
+    if (nextSort.sortBy) {
+      params.set("sortBy", nextSort.sortBy);
+      params.set("sortOrder", nextSort.sortOrder || "asc");
+    }
+
     params.set("page", String(page));
     return params;
-  };
+  }
 
   const handleSearch = () => {
-    setSearchParams(buildParams(filters, 1));
+    setSearchParams(buildParams(filters, 1,initialSort));
   };
 
   const handleClear = () => {
     setFilters(initialFilters);
-    setSearchParams({ page: "1" });
+    setSortBy("");
+    setSortOrder("asc");
+    setSearchParams(buildParams(initialFilters, 1, initialSort));
   };
 
   const handlePageChange = (page) => {
-    const params = buildParams(filters, page);
+    const params = buildParams(filters, page, { sortBy, sortOrder });
     setSearchParams(params);
     window.scrollTo(0, 0);
   };
-
+  const handleSortChange = (nextSortBy, nextSortOrder) => {
+      setSortBy(nextSortBy);
+      setSortOrder(nextSortOrder || "asc");
+      setSearchParams(
+        buildParams(filters, 1, {
+          sortBy: nextSortBy,
+          sortOrder: nextSortOrder || "asc",
+        })
+      );
+    };
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
 
@@ -156,6 +205,9 @@ export default function ListingsPage() {
           onSearch={handleSearch}
           onClear={handleClear}
           filterOptions={filterOptions}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={handleSortChange}
         />
       </div>
 

@@ -2,9 +2,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import PropertyImageCarousel from "./PropertyImageCarousel";
 import "../styles/PropertyCard.css";
+import { useFavorites } from "../hooks/useFavorites";
 
 export default function PropertyCard({ property }) {
   const navigate = useNavigate();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const price =
     property.L_SystemPrice !== null && property.L_SystemPrice !== undefined
@@ -14,6 +16,7 @@ export default function PropertyCard({ property }) {
   const beds = property.L_Keyword2 ?? "—";
   const baths = property.LM_Dec_3 ?? "—";
   const sqft = property.LM_Int2_3 ?? "—";
+  const favorite = isFavorite(property);
 
   const handleClick = () => {
     navigate(`/property/${property.L_ListingID}`);
@@ -26,6 +29,10 @@ export default function PropertyCard({ property }) {
     }
   };
 
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    toggleFavorite(property);
+  };
   return (
     <div
       className="property-card"
@@ -34,7 +41,17 @@ export default function PropertyCard({ property }) {
       role="button"
       tabIndex={0}
     >
+      
       <div className="property-image-wrap">
+        <button
+          type="button"
+          className={`favorite-button ${favorite ? "active" : ""}`}
+          onClick={handleFavoriteClick}
+          aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
+          title={favorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          {favorite ? "♥" : "♡"}
+        </button>
         <PropertyImageCarousel
           photosRaw={property.L_Photos}
           altText={property.L_Address || "Property"}

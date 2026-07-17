@@ -3,6 +3,32 @@ const router = express.Router();
 const pool = require("../config/db");
 const helperfunctions = require("../helper/helperfunctions");
 
+const ALLOWED_SORT_COLUMNS = new Set([
+  "L_SystemPrice",
+  "ListingContractDate", //CHECKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+  "LM_Int2_3",
+  "L_Keyword2",
+]);
+
+function normalizeSortOrder(value) {
+  const order = String(value || "asc").toLowerCase();
+  return order === "desc" ? "DESC" : "ASC";
+}
+
+function buildSortClause(sortBy, sortOrder) {
+  if (!sortBy) {
+    return "ORDER BY id ASC";
+  }
+
+  if (!ALLOWED_SORT_COLUMNS.has(sortBy)) {
+    const err = new Error("Invalid sortBy value");
+    err.status = 400;
+    throw err;
+  }
+
+  const order = normalizeSortOrder(sortOrder);
+  return `ORDER BY ${sortBy} ${order},id ASC`;
+}
 // GET /api/properties/filter-options
 router.get("/filter-options", async (req, res) => {
   try {
@@ -107,6 +133,8 @@ router.get("/", async (req, res) => {
       maxPrice,
       beds,
       baths,
+      sortBy,
+      sortOrder,
       limit = "20",
       offset = "0",
     } = req.query;
@@ -165,7 +193,8 @@ router.get("/", async (req, res) => {
       addCondition("LM_Dec_3 >= ?", Number(baths));
     }
     const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-    
+    const orderClause = buildSortClause(sortBy, sortOrder);
+
     const countSql = `
       SELECT COUNT(*) AS total
       FROM rets_property
@@ -193,12 +222,11 @@ router.get("/", async (req, res) => {
         StandardStatus
       FROM rets_property
       ${whereClause}
-      ORDER BY id
+      ${orderClause}
       LIMIT ? OFFSET ?
     `;
     const [countRows] = await pool.query(countSql, values);
     const total = countRows[0].total;
-
     const [results] = await pool.query(dataSql, [...values, limitNum, offsetNum]);
     
     res.json({

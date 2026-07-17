@@ -4,12 +4,18 @@ import './styles/index.css';
 import App from './App';
 import { BrowserRouter } from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
+import ErrorBoundary from "./components/ErrorBoundary";
+import { FavoritesProvider } from "./hooks/useFavorites";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
      <BrowserRouter>
-        <App />
+      <FavoritesProvider>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </FavoritesProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

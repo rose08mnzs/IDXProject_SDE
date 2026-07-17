@@ -1,6 +1,8 @@
 import React, { useEffect, useState,useRef } from "react";
 import { getFirstPhotoUrl } from "../utility/photos";
+import { useNavigate } from "react-router-dom";
 import "../styles/PropertyFilter.css";
+import { useFavorites } from "../hooks/useFavorites";
 
 const defaultFilters = {
   city: "",
@@ -15,8 +17,24 @@ const defaultFilterOptions = {
   beds: [],
   baths: [],
 };
-export default function PropertyFilter({ filters = defaultFilters, filterOptions = defaultFilterOptions, setFilters, onSearch, onClear }) {
+
+const sortOptions = [
+  { value: "", label: "Default" },
+  { value: "L_SystemPrice", label: "Price" },
+  { value: "ListingContractDate", label: "Date Listed" },
+  { value: "LM_Int2_3", label: "Square Footage" },
+  { value: "L_Keyword2", label: "Beds" },
+];
+
+export default function PropertyFilter({ filters = defaultFilters, 
+  filterOptions = defaultFilterOptions, setFilters, onSearch, onClear,
+  sortBy = "",
+  sortOrder = "asc",
+  onSortChange, }) {
  
+  const navigate = useNavigate();
+  const { favoritesCount } = useFavorites();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
@@ -32,6 +50,16 @@ export default function PropertyFilter({ filters = defaultFilters, filterOptions
   const handleClear = () => {
     setFilters();
     onClear();
+  };
+
+  const handleSortByChange = (e) => {
+    const nextSortBy = e.target.value;
+    const nextSortOrder = nextSortBy ? sortOrder : "asc";
+    onSortChange?.(nextSortBy, nextSortOrder);
+  };
+
+  const handleSortOrderChange = (e) => {
+    onSortChange?.(sortBy, e.target.value);
   };
 
    return (
@@ -108,13 +136,46 @@ export default function PropertyFilter({ filters = defaultFilters, filterOptions
             ))}
           </select>
         </div>
+        <div className="filter-group">
+          <label htmlFor="sortBy">Sort By</label>
+          <select id="sortBy" value={sortBy} onChange={handleSortByChange}>
+            {sortOptions.map((option) => (
+              <option key={option.value || "default"} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="sortOrder">Sort Order</label>
+          <select
+            id="sortOrder"
+            value={sortOrder}
+            onChange={handleSortOrderChange}
+            disabled={!sortBy}
+          >
+            <option value="asc">Low to High</option>
+            <option value="desc">High to Low</option>
+          </select>
+        </div>
       </div>
 
       <div className="filter-actions">
-        <button type="submit">Search</button>
-        <button type="button" onClick={handleClear}>
-          Clear Filters
+        <div className="filter-buttons">
+          <button type="submit">Search</button>
+          <button type="button" onClick={handleClear}>
+            Clear Filters
+          </button>
+        </div>
+            <div className="filter-buttons">
+        <button
+          type="button"
+          onClick={() => navigate("/favorites")}
+        >
+          ❤️ Saved Homes ({favoritesCount})
         </button>
+        </div>
       </div>
     </form>
   );

@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import ListingsPage from "./pages/ListingsPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
+import FavoritesPage from "./pages/FavoritesPage";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <Routes>
           <Route path="/" element={<ListingsPage />} />
           <Route path="/property/:id" element={<PropertyDetailPage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
         </Routes> 
       </header>
     </div>

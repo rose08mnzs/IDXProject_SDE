@@ -48,8 +48,16 @@
 
 .filter-actions {
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 18px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -66,13 +74,34 @@
   color: white;
 }
 
-.filter-actions button[type="button"] {
-  background: #e5e7eb;
-  color: #111;
+.filter-actions button[type="submit"]:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
 }
 
-.filter-actions button:hover {
-  opacity: 0.92;
+.filter-buttons button[type="button"] {
+  background: #e5e7eb;
+  color: #111827;
+  transition: all 0.2s ease;
+}
+
+.filter-buttons button[type="button"]:hover {
+  background: #d1d5db;
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.favorites-page-btn {
+  background: #e5e7eb;
+  color: #111827;
+  border: 2px solid #2563eb;
+  transition: all 0.2s ease;
+}
+
+.favorites-page-btn:hover {
+  background: #2563eb;
+  color: white;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 900px) {
